@@ -88,6 +88,11 @@ export default class Request {
 			parsedURL
 		};
 
+                // allow operation after certificate verify failure
+                if (init.insecure) {
+                        this.insecure = true;
+                }
+
 		// node-fetch-only options
 		this.follow = init.follow !== undefined ?
 			init.follow : input.follow !== undefined ?
@@ -197,9 +202,16 @@ export function getNodeRequestOptions(request) {
 	// HTTP-network fetch step 4.2
 	// chunked encoding is handled by Node.js
 
-	return Object.assign({}, parsedURL, {
+	let retval = Object.assign({}, parsedURL, {
 		method: request.method,
 		headers: exportNodeCompatibleHeaders(headers),
 		agent: request.agent
 	});
+
+        // HTTPS cert verification is enabled by default
+        if (request.insecure) {
+                retval['rejectUnauthorized'] = false
+        }
+
+        return retval
 }
